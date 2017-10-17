@@ -14,6 +14,14 @@ Id [a-zA-z_]([a-zA-z_]|[0-9])*
 
 [()[\];,:]	{ return *yytext; }
 
+
+"(Float)"        {
+                
+                yylval.traducao = yytext;
+				yylval.label = yytext;
+				return TK_DO_FLOAT;
+            }
+
 "(Int)"        {
                 
                 yylval.traducao = yytext;
