@@ -171,7 +171,7 @@ Id [a-zA-z_]([a-zA-z_]|[0-9])*
 				yylval.tipo = "Int";
 				yylval.tipo_traducao = "int";
 				yylval.tamanho = ((string) yytext).size();
-				return TK_INT;
+				return TK_NUM;
 			}
 
 {Float}     {
@@ -180,7 +180,7 @@ Id [a-zA-z_]([a-zA-z_]|[0-9])*
 				yylval.tipo = "Float";
 				yylval.tipo_traducao = "float";
 				yylval.tamanho = ((string) yytext).size();
-				return TK_FLOAT;
+				return TK_NUM;
             }
 
 {Id}		{
