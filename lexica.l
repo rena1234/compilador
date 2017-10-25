@@ -88,19 +88,19 @@ Id [a-zA-z_]([a-zA-z_]|[0-9])*
 "And"	    {
 				yylval.traducao = "&&";
 				yylval.label = yytext;
-				return TK_AND;
+				return TK_LOGICO;
 			}
 
 "Or"		{	
 				yylval.traducao = "||";
 				yylval.label = yytext;
-				return TK_OR;
+				return TK_LOGICO;
 			}
 
 "Not"		{	
 				yylval.traducao = "!";
 				yylval.label = yytext;
-				return TK_NOT;
+				return TK_LOGICO;
 			}
 
 "True"		{	
@@ -108,7 +108,7 @@ Id [a-zA-z_]([a-zA-z_]|[0-9])*
 				yylval.label = yytext;
 				yylval.tipo = "Boolean";
 				yylval.tipo_traducao = "bool";
-				return TK_LOGICO;
+				return TK_BOOL;
 			}
 
 "False"		{	
@@ -116,7 +116,7 @@ Id [a-zA-z_]([a-zA-z_]|[0-9])*
 				yylval.label = yytext;
 				yylval.tipo = "Boolean";
 				yylval.tipo_traducao = "bool";
-				return TK_LOGICO;
+				return TK_BOOL;
 			}
 "{"         {
                 yylval.traducao = yytext;
