@@ -91,7 +91,7 @@ COMANDO 		: E ';'
 				;
 DECLARACAO  : TK_TIPO_FLOAT TK_ID TK_ATRIB  E 
 			{  
-                if(mapa_variaveis.find($2.label)){ 
+                if(mapa_variaveis.find($2.label) != mapa_variaveis.end()){ 
                     /* 
                     *   RETORNAR ERRO AQUI VARIAVEL JA FOI DECLARADA
                     */
@@ -99,26 +99,31 @@ DECLARACAO  : TK_TIPO_FLOAT TK_ID TK_ATRIB  E
 
                 $$.label = cria_nome_nova_temp();
                 $$.tipo = "Float";
-                $$.tipo_traducao = "float"
+                $$.tipo_traducao = "float";
 
-                mapaVariaveis[$2.label] = { .id = $2.label,
+                mapa_variaveis[$2.label] = { .id = $2.label,
                         .tipo_traducao = $$.tipo_traducao, $$.label };
-                mapa_temporario[$$.label] = { .id = $$.label, .tipo = $$.tipo };
+                mapa_temporario[$$.label] = { .id = $$.label,
+                        .tipo_traducao = $$.tipo_traducao };
+
                 if($4.tipo != "Float"){
                     string varCast = cria_nome_nova_temp();
                     mapa_temporario[varCast] = { .id = varCast,
                             .tipo_traducao = "float" };
                     
                   	string expCast = varCast + "= (float) " + $4.label +";";
-                    $$.traducao =  expCast + "/n" + $2.temporario + " = " $4.label; 
+                    $$.traducao =  expCast + "/n" 
+                            + mapa_variaveis[$2.label].temporario 
+                            + " = " + $4.label;
                 }
   				else{
-                	$$.traducao = $2.temporario + " = " + $4.label +";";
+                	$$.traducao = mapa_variaveis[$2.label].temporario 
+                            + " = " + $4.label +";";
                 }
 			}
 			| TK_TIPO_BOOL TK_ID TK_ATRIB E
 			{
-                if(mapaVariaveis.find($2.label)){ 
+                if(mapa_variaveis.find($2.label) != mapa_variaveis.end()){ 
                     /* 
                     *   RETORNAR ERRO AQUI VARIAVEL JA FOI DECLARADA
                     */
@@ -126,27 +131,31 @@ DECLARACAO  : TK_TIPO_FLOAT TK_ID TK_ATRIB  E
 
                 $$.label = cria_nome_nova_temp();
                 $$.tipo = "Bool";
-                $$.tipo_traducao = "bool"
+                $$.tipo_traducao = "bool";
 
-                mapaVariaveis[$2.label] = { .id = $2.label,
+                mapa_variaveis[$2.label] = { .id = $2.label,
                         .tipo_traducao = $$.tipo_traducao, $$.label };
-                mapa_temporario[$$.label] = { .id = $$.label, .tipo = $$.tipo };
+                mapa_temporario[$$.label] = { .id = $$.label,
+                        .tipo_traducao = $$.tipo_traducao };
                 if($4.tipo != "Bool"){
                     string varCast = cria_nome_nova_temp();
                     mapa_temporario[varCast] = { .id = varCast,
                             .tipo_traducao = "bool" };
                     
                   	string expCast = varCast + "= (bool) " + $4.label +";";
-                    $$.traducao =  expCast + "/n" + $2.temporario + " = " $4.label; 
+                    $$.traducao =  expCast + "/n" 
+                            + mapa_variaveis[$2.label].temporario 
+                            + " = " + $4.label;
                 }
   				else{
-                	$$.traducao = $2.temporario + " = " + $4.label +";";
+                	$$.traducao = mapa_variaveis[$2.label].temporario 
+                            + " = " + $4.label +";";
                 }
 			}
 			| TK_TIPO_CHAR TK_ID TK_ATRIB E
       		{
 
-                if(mapaVariaveis.find($2.label)){ 
+                if(mapa_variaveis.find($2.label) != mapa_variaveis.end()){ 
                     /* 
                     *   RETORNAR ERRO AQUI VARIAVEL JA FOI DECLARADA
                     */
@@ -154,27 +163,31 @@ DECLARACAO  : TK_TIPO_FLOAT TK_ID TK_ATRIB  E
 
                 $$.label = cria_nome_nova_temp();
                 $$.tipo = "Char";
-                $$.tipo_traducao = "char"
+                $$.tipo_traducao = "char";
 
-                mapaVariaveis[$2.label] = { .id = $2.label,
+                mapa_variaveis[$2.label] = { .id = $2.label,
                         .tipo_traducao = $$.tipo_traducao, $$.label };
-                mapa_temporario[$$.label] = { .id = $$.label, .tipo = $$.tipo };
+                mapa_temporario[$$.label] = { .id = $$.label,
+                        .tipo_traducao = $$.tipo_traducao };
                 if($4.tipo != "Char"){
                     string varCast = cria_nome_nova_temp();
                     mapa_temporario[varCast] = { .id = varCast,
                             .tipo_traducao = "char" };
                     
                   	string expCast = varCast + "= (char) " + $4.label +";";
-                    $$.traducao =  expCast + "/n" + $2.temporario + " = " $4.label; 
+                    $$.traducao =  expCast + "/n" 
+                            + mapa_variaveis[$2.label].temporario 
+                            + " = " + $4.label;
                 }
   				else{
-                	$$.traducao = $2.temporario + " = " + $4.label +";";
+                	$$.traducao = mapa_variaveis[$2.label].temporario 
+                            + " = " + $4.label +";";
                 }
       		}
 			| TK_TIPO_INT TK_ID TK_ATRIB E
       		{
 
-                if(mapaVariaveis.find($2.label)){ 
+                if(mapa_variaveis.find($2.label) != mapa_variaveis.end()){ 
                     /* 
                     *   RETORNAR ERRO AQUI VARIAVEL JA FOI DECLARADA
                     */
@@ -182,21 +195,25 @@ DECLARACAO  : TK_TIPO_FLOAT TK_ID TK_ATRIB  E
 
                 $$.label = cria_nome_nova_temp();
                 $$.tipo = "Int";
-                $$.tipo_traducao = "int"
+                $$.tipo_traducao = "int";
 
-                mapaVariaveis[$2.label] = { .id = $2.label,
+                mapa_variaveis[$2.label] = { .id = $2.label,
                         .tipo_traducao = $$.tipo_traducao, $$.label };
-                mapa_temporario[$$.label] = { .id = $$.label, .tipo = $$.tipo };
+                mapa_temporario[$$.label] = { .id = $$.label,
+                        .tipo_traducao = $$.tipo_traducao };
                 if($4.tipo != "Int"){
                     string varCast = cria_nome_nova_temp();
                     mapa_temporario[varCast] = { .id = varCast,
                             .tipo_traducao = "int" };
                     
                   	string expCast = varCast + "= (int) " + $4.label +";";
-                    $$.traducao =  expCast + "/n" + $2.temporario + " = " $4.label; 
+                    $$.traducao =  expCast + "/n" 
+                            + mapa_variaveis[$2.label].temporario 
+                            + " = " + $4.label;
                 }
   				else{
-                	$$.traducao = $2.temporario + " = " + $4.label +";";
+                	$$.traducao = mapa_variaveis[$2.label].temporario 
+                            + " = " + $4.label +";";
                 }
       		}
 			;
@@ -209,27 +226,35 @@ OPERACAO_ARITMETICA : E TK_SOMA_ou_SUBTRACAO E
 				{   
                     
                     $$.label = cria_nome_nova_temp();
-                    if ($1.tipo == Int && $3.tipo == Float) {
+                    if ($1.tipo == "Int" && $3.tipo == "Float") {
                         string varCast = cria_nome_nova_temp();
                         $$.tipo_traducao = "float";
-                        $$.traducao += '\t' + varCast + " = (float) " + $1.label + ";\n" +
-                        '\t' + $$.label + " = " + varCast + $2.traducao + $3.label + ";\n";
-                        MapaVar[varCast] = { .id = varCast, .tipo_traducao = "float" };
-                        MapaVar[$$.label] = { .id = $$.label, .tipo_traducao = "float" };
+                        $$.traducao += '\t' + varCast + " = (float) "
+                                + $1.label + ";\n" + '\t' + $$.label + " = "
+                                + varCast + $2.traducao + $3.label + ";\n";
+                        mapa_temporario[varCast] = { .id = varCast,
+                                .tipo_traducao = "float" };
+                        mapa_temporario[$$.label] = { .id = $$.label,
+                                .tipo_traducao = "float" };
                     }
-                     else if ($1.tipo == Float && $3.tipo == Int) {
+                     else if ($1.tipo == "Float" && $3.tipo == "Int") {
                         string varCast = cria_nome_nova_temp();
                         $$.tipo_traducao = "float";
-                        $$.traducao += '\t' + varCast + " = (float) " + $3.label + ";\n" +
-                        '\t' + $$.label + " = " + varCast + $2.traducao + $1.label + ";\n";
-                        MapaVar[varCast] = { .id = varCast, .tipo_traducao = "float" };
-                        MapaVar[$$.label] = { .id = $$.label, .tipo_traducao = "float" };
+                        $$.traducao += '\t' + varCast + " = (float) " 
+                                + $3.label + ";\n" + '\t' + $$.label + " = "
+                                + varCast + $2.traducao + $1.label + ";\n";
+                        mapa_temporario[varCast] = { .id = varCast, 
+                                .tipo_traducao = "float" };
+                        mapa_temporario[$$.label] = { .id = $$.label, 
+                                .tipo_traducao = "float" };
                     }
                      else {
                         $$.tipo = $1.tipo;
                         $$.tipo_traducao = "int";
-                        MapaVar[$$.label] = { .id = $$.label, .tipo_traducao = $1.tipo_traducao };
-                        $$.traducao += '\t' + $$.label + " = " + $1.label + $2.traducao + $3.label + ";\n";
+                        mapa_temporario[$$.label] = { .id = $$.label, 
+                                .tipo_traducao = $1.tipo_traducao };
+                        $$.traducao += '\t' + $$.label + " = " + $1.label
+                                + $2.traducao + $3.label + ";\n";
                     }
 
 				}
@@ -238,26 +263,26 @@ OPERACAO_ARITMETICA : E TK_SOMA_ou_SUBTRACAO E
 				{   
                     
                     $$.label = cria_nome_nova_temp();
-                    if ($1.tipo == Int && $3.tipo == Float) {
+                    if ($1.tipo == "Int" && $3.tipo == "Float") {
                         string varCast = cria_nome_nova_temp();
                         $$.tipo_traducao = "float";
                         $$.traducao += '\t' + varCast + " = (float) " + $1.label + ";\n" +
                         '\t' + $$.label + " = " + varCast + $2.traducao + $3.label + ";\n";
-                        MapaVar[varCast] = { .id = varCast, .tipo_traducao = "float" };
-                        MapaVar[$$.label] = { .id = $$.label, .tipo_traducao = "float" };
+                        mapa_temporario[varCast] = { .id = varCast, .tipo_traducao = "float" };
+                        mapa_temporario[$$.label] = { .id = $$.label, .tipo_traducao = "float" };
                     }
-                     else if ($1.tipo == Float && $3.tipo == Int) {
+                     else if ($1.tipo == "Float" && $3.tipo == "Int") {
                         string varCast = cria_nome_nova_temp();
                         $$.tipo_traducao = "float";
                         $$.traducao += '\t' + varCast + " = (float) " + $3.label + ";\n" +
                         '\t' + $$.label + " = " + varCast + $2.traducao + $1.label + ";\n";
-                        MapaVar[varCast] = { .id = varCast, .tipo_traducao = "float" };
-                        MapaVar[$$.label] = { .id = $$.label, .tipo_traducao = "float" };
+                        mapa_temporario[varCast] = { .id = varCast, .tipo_traducao = "float" };
+                        mapa_temporario[$$.label] = { .id = $$.label, .tipo_traducao = "float" };
                     }
                      else {
                         $$.tipo = $1.tipo;
                         $$.tipo_traducao = "int";
-                        MapaVar[$$.label] = { .id = $$.label, .tipo_traducao = $1.tipo_traducao };
+                        mapa_temporario[$$.label] = { .id = $$.label, .tipo_traducao = $1.tipo_traducao };
                         $$.traducao += '\t' + $$.label + " = " + $1.label + $2.traducao + $3.label + ";\n";
                     }
 
@@ -267,7 +292,7 @@ OPERACAO_ARITMETICA : E TK_SOMA_ou_SUBTRACAO E
                 {
                     $$.tipo_traducao = $1.tipo_traducao;
                     $$.label = cria_nome_nova_temp();
-                    MapaVar[$$.label] = { .id = $$.label, .tipo_traducao = $$.tipo_traducao };
+                    mapa_temporario[$$.label] = { .id = $$.label, .tipo_traducao = $$.tipo_traducao };
                     $$.traducao = '\t' + $$.label + " = " + $1.traducao + ";\n";
                 }
 
@@ -278,57 +303,63 @@ OPERACAO_ARITMETICA : E TK_SOMA_ou_SUBTRACAO E
                     $$.label = cria_nome_nova_temp();
                     $$.traducao= $2.traducao;
                     $$.tipo_traducao = $2.tipo_traducao;
-                    MapaVar[$$.label] = { .id = $$.label, .tipo_traducao = $$.tipo_traducao };
+                    mapa_temporario[$$.label] = { .id = $$.label, .tipo_traducao = $$.tipo_traducao };
                 }
-			| TK_ID 
-			{
-        		string var = mapa[$1.label].temporario;
-        		$$.label = mapa_temporario[var].id;
-        		$$.tipo = mapa_temporario[var].tipo;
-        		$$.traducao = "";
-			}
-			;
+                | TK_ID 
+                {
+                    string var = mapa_variaveis[$1.label].temporario;
+                    $$.label = mapa_temporario[var].id;
+                    $$.tipo_traducao = mapa_temporario[var].tipo_traducao;
+                    $$.traducao = "";
+                }
+                ;
 
 OPERACAO_RELACIONAL	:	E TK_RELACIONAL E
                     {
                         $$.label = cria_nome_nova_temp();
-                        $$.tipo = Bool; $$.tipo_traducao = "bool";
-                        mapa_temporario[$$.label] = {.id = $$.label, .tipo = $$.tipo_traducao};
-  											//decide qual operacao
+                        $$.tipo = "Bool"; $$.tipo_traducao = "bool";
+                        mapa_temporario[$$.label] = {.id = $$.label,
+                                .tipo_traducao = $$.tipo_traducao};
+                        //decide qual operacao
                         string var;
-  											if($2.traducao == "And") var = "&&";
+                        if($2.traducao == "And") var = "&&";
                         else if($2.traducao == "Or") var = "||";
                         else if($2.traducao == "!=") var = "!=";
                         //
-                        $$.traducao = $1.traducao + $3.traducao + '\t' + $$.label + " = " + $1.label + var + $3.label + ";\n";
+                        $$.traducao = $1.traducao + $3.traducao + '\t' 
+                                + $$.label + " = " + $1.label + var + $3.label + ";\n";
                     }
 					| OPERACAO_RELACIONAL TK_RELACIONAL TK_BOOL
                     {
                       	$$.label = cria_nome_nova_temp();
                       	$$.tipo = "Bool";
                         $$.tipo_traducao = "bool";
-                      	mapa_temporario[$$.label] = {.id = $$.label, .tipo = $$.tipo_traducao};
-										//decide qual operacao
+                      	mapa_temporario[$$.label] = {.id = $$.label,
+                                .tipo_traducao = $$.tipo_traducao};
+                        //decide qual operacao
                         string var;
                         if($2.traducao == "And") var = "&&";
                         else if($2.traducao == "Or") var = "||";
                         else if($2.traducao == "!=") var = "!=";
                         //
-                      	$$.traducao = $1.traducao + '\t' + $$.label + " = " + $1.label + "==" + var + ";\n"
+                      	$$.traducao = $1.traducao + '\t' + $$.label + " = " + $1.label + 
+                                "==" + var + ";\n";
                     }
                     ;
 
 OPERACAO_LOGICO 	: OPERACAO_LOGICO TK_LOGICO OPERACAO_LOGICO
                     {
-                          $$.label = cria_nome_temp();
-                          $$.tipo = Bool;$$.tipo_traducao = "bool";
-						  mapa_temporario[$$.label] = { .id = $$.label, .tipo = $$.tipo_traducao };
+                          $$.label = cria_nome_nova_temp();
+                          $$.tipo = "Bool"; $$.tipo_traducao = "bool";
+						  mapa_temporario[$$.label] = { .id = $$.label, 
+                                .tipo_traducao = $$.tipo_traducao };
                           //decide qual operacao
                           string var;
                           if($2.traducao == "And") var = "&&";
                           else if($2.traducao == "Or") var = "||";
                           else if($2.traducao == "!=") var = "!=";
-                          $$.traducao = $1.traducao + $3.traducao + '\t' + $$.label + " = " + $1.label + var + $3.label + ";\n";	
+                          $$.traducao = $1.traducao + $3.traducao + '\t' + $$.label + " = "
+                                + $1.label + var + $3.label + ";\n";	
                     }
 				    |
                     OPERACAO_RELACIONAL
@@ -349,17 +380,19 @@ ATRIBUICAO			: TK_ID TK_ATRIB TK_BOOL
                     TK_ID TK_ATRIB E
                     {
                         //mapVar mapa = buscaMapa($1.label); ---usar mais tarde
-                        $1.tipo = mapa_temporario[mapa[$1.label].temporario].tipo;
-                        if($1.tipo != $3.tipo){
+                        $1.tipo_traducao = mapa_variaveis[$1.label].temporario.tipo_traducao;
+                        if($1.tipo_traducao != $3.tipo_traducao){
                           	string variavel_cast = cria_nome_nova_temp();
-                            if($1.tipo == "Int"){
+                            if($1.tipo_traducao == "int"){
                                 $$.tipo = "Int";
-                            	mapa_temporario[varCast] = { .id = variavel_cast .tipo = "Int" };
+                                $$.tipo_traducao = "int";
+                            	mapa_temporario[varCast] = { .id = variavel_cast .tipo_traducao = "int" };
                             	$$.traducao = $3.traducao + '\t' + varavel_cast + " = (int) " + $3.label + ";\n" +
 															'\t' + mapa_temporario[mapa[$1.label].temporario].id + " = " + variavel_cast + ";\n";
-                            }else if($1.tipo == "Float"){
+                            }else if($1.tipo_traducao == "float"){
                                 $$.tipo = "Float";
-                                mapa_temporario[varCast] = { .id = variavel_cast .tipo = "Float" };
+                                $$.tipo_traducao = "float";
+                                mapa_temporario[varCast] = { .id = variavel_cast .tipo_traducao = "float" };
                                 $$.traducao = $3.traducao + '\t' + varavel_cast + " = (float) " + $3.label + ";\n" +
                                 '\t' + mapa_temporario[mapa[$1.label].temporario].id + " = " + variavel_cast + ";\n";
                             }
