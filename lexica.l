@@ -15,19 +15,22 @@ Id [a-zA-z_]([a-zA-z_]|[0-9])*
 [()[\];,:]	{ return *yytext; }
 
 
+    /*
+
 "(Float)"        {
                 
                 yylval.traducao = yytext;
 				yylval.label = yytext;
-				return TK_DO_FLOAT;
+				return TK_CAST_FLOAT;
             }
 
 "(Int)"        {
                 
                 yylval.traducao = yytext;
 				yylval.label = yytext;
-				return TK_DO_INT;
+				return TK_CAST_INT;
             }
+    */
 
 "!="        {
                 
@@ -118,6 +121,7 @@ Id [a-zA-z_]([a-zA-z_]|[0-9])*
 				yylval.tipo_traducao = "bool";
 				return TK_BOOL;
 			}
+    /*
 "{"         {
                 yylval.traducao = yytext;
                 yylval.label = yytext;
@@ -128,6 +132,7 @@ Id [a-zA-z_]([a-zA-z_]|[0-9])*
                 yylval.label = yytext;
                 return TK_END;
             }
+            */
 
 "main"      {
                 yylval.traducao = yytext;
@@ -136,6 +141,7 @@ Id [a-zA-z_]([a-zA-z_]|[0-9])*
             }
 {Delim} 	{}
 
+   /* 
 "return"	{
 				yylval.traducao = yytext;
 				yylval.label = yytext;
@@ -147,6 +153,7 @@ Id [a-zA-z_]([a-zA-z_]|[0-9])*
 				yylval.label = yytext;
 				return TK_BREAK;
 			}
+            */
  
 "Int"		{
 				yylval.traducao = "int";

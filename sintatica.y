@@ -52,7 +52,7 @@ string declara_variaveis_temp(MapaTemp mapa_vars);
 %token TK_MAIN TK_TIPO_INT TK_TIPO_BOOL TK_TIPO_FLOAT TK_TIPO_CHAR 
 %token TK_SOMA_ou_SUBTRACAO TK_DIVISAO_ou_MULTIPLICACAO
 %token TK_MENOR_QUE TK_MAIOR_QUE TK_IGUAL TK_DIFERENTE TK_MENOR_IGUAL TK_LOGICO
-%token TK_ATRIB TK_CAST_DO_INT TK_CAST_DO_FLOAT
+%token TK_ATRIB TK_CAST_INT TK_CAST_FLOAT
 %token TK_FIM TK_ERROR
 
 %start S
@@ -67,7 +67,7 @@ string declara_variaveis_temp(MapaTemp mapa_vars);
 
 S 				: TK_TIPO_INT TK_MAIN '('')'BLOCO
 				{
-					cout << "/*Compilador FOCA*/\n" << "#include <iostream>\n#include<string.h>\n#include<stdio.h>\nint main(void)\n{\n" << declara_variaveis_temp(mapa_temporario) << $5.traducao << "\treturn 0;\n}" << endl; 
+					cout << "/*Dia de semana eh tenso*/\n" << "#include <iostream>\n#include<string.h>\n#include<stdio.h>\nint main(void)\n{\n" << declara_variaveis_temp(mapa_temporario) << $5.traducao << "\treturn 0;\n}" << endl; 
 				};
 
 BLOCO			: '{' COMANDOS '}'
@@ -365,49 +365,51 @@ OPERACAO_LOGICO 	: OPERACAO_LOGICO TK_LOGICO OPERACAO_LOGICO
                     OPERACAO_RELACIONAL
                     ;  
         
-ATRIBUICAO			: TK_ID TK_ATRIB TK_BOOL
+ATRIBUICAO      	: TK_ID TK_ATRIB TK_BOOL
                     {
                       //mapV mapa = buscaMapa($1.label);
-                      $$.traducao = '\t' + mapa_temporario[mapa[$1.label].temporario].id + " = " + $3.traducao + ";\n";
+                      $$.traducao = '\t' + mapa_variaveis[$1.label].temporario + " = " + $3.traducao + ";\n";
                     }
                     |
                     TK_ID TK_ATRIB TK_CHAR
                     {
                       //mapV mapa = buscaMapa($1.label);
-                      $$.traducao = '\t' + mapa_temporario[mapa[$1.label].temporario].id + " = " + $3.traducao + ";\n";
+                      $$.traducao = '\t' + mapa_variaveis[$1.label].temporario + " = " + $3.traducao + ";\n";
                     } 
                     |
                     TK_ID TK_ATRIB E
                     {
                         //mapVar mapa = buscaMapa($1.label); ---usar mais tarde
-                        $1.tipo_traducao = mapa_variaveis[$1.label].temporario.tipo_traducao;
+                        $1.tipo_traducao = mapa_variaveis[$1.label].tipo_traducao;
                         if($1.tipo_traducao != $3.tipo_traducao){
-                          	string variavel_cast = cria_nome_nova_temp();
+			    string variavel_cast = cria_nome_nova_temp();
                             if($1.tipo_traducao == "int"){
                                 $$.tipo = "Int";
                                 $$.tipo_traducao = "int";
-                            	mapa_temporario[varCast] = { .id = variavel_cast .tipo_traducao = "int" };
-                            	$$.traducao = $3.traducao + '\t' + varavel_cast + " = (int) " + $3.label + ";\n" +
-															'\t' + mapa_temporario[mapa[$1.label].temporario].id + " = " + variavel_cast + ";\n";
+                            	mapa_temporario[variavel_cast] = { .id = variavel_cast, .tipo_traducao = "int" };
+                            	$$.traducao = $3.traducao + '\t' + variavel_cast + " = (int) " + $3.label + ";\n" +
+					'\t' + mapa_variaveis[$1.label].temporario + " = " + variavel_cast + ";\n";
                             }else if($1.tipo_traducao == "float"){
                                 $$.tipo = "Float";
                                 $$.tipo_traducao = "float";
-                                mapa_temporario[varCast] = { .id = variavel_cast .tipo_traducao = "float" };
-                                $$.traducao = $3.traducao + '\t' + varavel_cast + " = (float) " + $3.label + ";\n" +
-                                '\t' + mapa_temporario[mapa[$1.label].temporario].id + " = " + variavel_cast + ";\n";
+                                mapa_temporario[variavel_cast] = { .id = variavel_cast, .tipo_traducao = "float" };
+                                $$.traducao = $3.traducao + '\t' + variavel_cast + " = (float) " + $3.label + ";\n" +
+                                '\t' + mapa_variaveis[$1.label].temporario + " = " + variavel_cast + ";\n";
                             }
                         } 
                     }
   					|
                     TK_ID TK_ATRIB OPERACAO_LOGICO
                     {	
-                      $$.traducao = $3.traducao + '\t' + mapa_temporario[mapa[$1.label].temporario].id + " = " + $3.label + ";\n";
+                      $$.traducao = $3.traducao + '\t' + mapa_variaveis[$1.label].temporario + " = " + $3.label + ";\n";
                     }
                     ;
         
         
         
 %%
+
+#include "lex.yy.c"
 
 //FUNÇOES 
 string cria_nome_nova_temp(){
@@ -416,17 +418,32 @@ string cria_nome_nova_temp(){
     return "temp" + to_string(n);
 }
 
+/*
 variavel cria_var(string nome_temp){
     variavel * var =  malloc(sizeof(variavel));
     var -> nome_temp = nome_temp;
 	return var;
-}
+}*/
 
 
 string declara_variaveis_temp(MapaTemp mapa_vars){
    	string s = "";
-	for (MapVar::iterator it = mapa_vars.begin(); it!=mapa_vars.end(); ++it) {
-    	s += '\t' + it->second.tipo_traducao + ' ' + it->id + ";\n";
+	for (MapaTemp::iterator it = mapa_vars.begin(); it!=mapa_vars.end(); ++it) {
+    	s += '\t' + it->second.tipo_traducao + ' ' + it->second.id + ";\n";
 	}
     return s;
 }
+
+int yyparse();
+
+int main( int argc, char* argv[] )
+{
+	yyparse();
+	return 0;
+}
+
+void yyerror( string MSG )
+{
+	cout << MSG << endl;
+	exit (0);
+}	
