@@ -52,7 +52,7 @@ string declara_variaveis_temp(MapaTemp mapa_vars);
 %token TK_MAIN TK_TIPO_INT TK_TIPO_BOOL TK_TIPO_FLOAT TK_TIPO_CHAR 
 %token TK_SOMA_ou_SUBTRACAO TK_DIVISAO_ou_MULTIPLICACAO
 %token TK_MENOR_QUE TK_MAIOR_QUE TK_IGUAL TK_DIFERENTE TK_MENOR_IGUAL TK_LOGICO
-%token TK_ATRIB TK_CAST_INT TK_CAST_FLOAT
+%token TK_ATRIB TK_CAST
 %token TK_FIM TK_ERROR
 %token TK_IF
 
@@ -95,9 +95,7 @@ COMANDO 		: DECLARACAO ';'
 DECLARACAO  : TK_TIPO_FLOAT TK_ID TK_ATRIB  E 
 			{  
                 if(mapa_variaveis.find($2.label) != mapa_variaveis.end()){ 
-                    /* 
-                    *   RETORNAR ERRO AQUI VARIAVEL JA FOI DECLARADA
-                    */
+                    yyerror("Variavel já foi declarada \n");
                 }
 
                 $$.label = cria_nome_nova_temp();
@@ -127,9 +125,7 @@ DECLARACAO  : TK_TIPO_FLOAT TK_ID TK_ATRIB  E
 			| TK_TIPO_BOOL TK_ID TK_ATRIB OPERACAO_LOGICO
 			{
                 if(mapa_variaveis.find($2.label) != mapa_variaveis.end()){ 
-                    /* 
-                    *   RETORNAR ERRO AQUI VARIAVEL JA FOI DECLARADA
-                    */
+                    yyerror("Variavel já foi declarada \n");
                 }
 
                 $$.label = cria_nome_nova_temp();
@@ -159,9 +155,7 @@ DECLARACAO  : TK_TIPO_FLOAT TK_ID TK_ATRIB  E
       		{
 
                 if(mapa_variaveis.find($2.label) != mapa_variaveis.end()){ 
-                    /* 
-                    *   RETORNAR ERRO AQUI VARIAVEL JA FOI DECLARADA
-                    */
+                    yyerror("Variavel já foi declarada \n");
                 }
 
                 $$.label = cria_nome_nova_temp();
@@ -191,9 +185,7 @@ DECLARACAO  : TK_TIPO_FLOAT TK_ID TK_ATRIB  E
       		{
 
                 if(mapa_variaveis.find($2.label) != mapa_variaveis.end()){ 
-                    /* 
-                    *   RETORNAR ERRO AQUI VARIAVEL JA FOI DECLARADA
-                    */
+                    yyerror("Variavel já foi declarada \n");
                 }
 
                 $$.label = cria_nome_nova_temp();
@@ -397,7 +389,7 @@ ATRIBUICAO      	:TK_ID TK_ATRIB TK_CHAR
                         //mapVar mapa = buscaMapa($1.label); ---usar mais tarde
                         $1.tipo_traducao = mapa_variaveis[$1.label].tipo_traducao;
                         if($1.tipo_traducao != $3.tipo_traducao){
-			    									string variavel_cast = cria_nome_nova_temp();
+		        	string variavel_cast = cria_nome_nova_temp();
                             if($1.tipo_traducao == "int"){
                                 $$.tipo = "Int";
                                 $$.tipo_traducao = "int";
@@ -419,10 +411,21 @@ ATRIBUICAO      	:TK_ID TK_ATRIB TK_CHAR
                       }
                       
                     }
-  					|
+  		    |
                     TK_ID TK_ATRIB OPERACAO_LOGICO
                     {	
                       $$.traducao = $3.traducao + '\t' + mapa_variaveis[$1.label].temporario + " = " + $3.label + ";\n";
+                    }
+                    |
+                    TK_ID TK_ATRIB TK_CAST E
+                    {
+			/*
+                            Tem que checar se o tipo do cast eh o msm do id
+                        */
+                        string variavel_cast= cria_nome_nova_temp(); 
+                        mapa_temporario[variavel_cast] = { .id = variavel_cast, .tipo_traducao = $3.tipo_traducao };
+                        $$.traducao =  $4.traducao +"\t" + variavel_cast +" = "+ $3.traducao + $4.label + ";\n" +
+                        '\t' + mapa_variaveis[$1.label].temporario + " = " + variavel_cast + ";\n";
                     }
                     ;
         

@@ -21,17 +21,20 @@ Id [a-zA-z_]([a-zA-z_]|[0-9])*
              }
 
 "(Float)"    {
-                
-                yylval.traducao = yytext;
-				yylval.label = yytext;
-				return TK_CAST_FLOAT;
+                yylval.tipo = "Float"; 
+                yylval.tipo_traducao = "float"; 
+                yylval.traducao = "(float)";
+		yylval.label = yytext;
+		return TK_CAST;
              }
 
 "(Int)"      {
                 
-                yylval.traducao = yytext;
-				yylval.label = yytext;
-				return TK_CAST_INT;
+                yylval.tipo = "Int"; 
+                yylval.tipo_traducao = "int"; 
+                yylval.traducao = "(int)";
+		yylval.label = yytext;
+		return TK_CAST;
             }
 
 "!="        {
@@ -41,7 +44,6 @@ Id [a-zA-z_]([a-zA-z_]|[0-9])*
                 
                 yylval.traducao = yytext;
 				yylval.label = yytext;
-                printf("lexica diferente\n");
 				return TK_RELACIONAL;
             }
 
@@ -50,7 +52,6 @@ Id [a-zA-z_]([a-zA-z_]|[0-9])*
                 
                 yylval.traducao = yytext;
 				yylval.label = yytext;
-                printf("lexica menor que\n");
 				return TK_RELACIONAL;
             }
 
@@ -58,7 +59,6 @@ Id [a-zA-z_]([a-zA-z_]|[0-9])*
                 
                 yylval.traducao = yytext;
 				yylval.label = yytext;
-                printf("lexica maior que\n");
 				return TK_RELACIONAL;
             }
 
@@ -66,7 +66,6 @@ Id [a-zA-z_]([a-zA-z_]|[0-9])*
                 
                 yylval.traducao = yytext;
 				yylval.label = yytext;
-                printf("lexica barra\n");
 				return TK_DIVISAO_ou_MULTIPLICACAO;
             }
 
@@ -74,7 +73,6 @@ Id [a-zA-z_]([a-zA-z_]|[0-9])*
                 
                 yylval.traducao = yytext;
 				yylval.label = yytext;
-                printf("lexica *\n");
 				return TK_DIVISAO_ou_MULTIPLICACAO;
             }
 
@@ -85,7 +83,6 @@ Id [a-zA-z_]([a-zA-z_]|[0-9])*
                 */
                 yylval.traducao = yytext;
 				yylval.label = yytext;
-                printf("lexica -\n");
 				return TK_SOMA_ou_SUBTRACAO;
             }
 
@@ -93,35 +90,30 @@ Id [a-zA-z_]([a-zA-z_]|[0-9])*
                 
                 yylval.traducao = yytext;
 				yylval.label = yytext;
-                printf("lexica +\n");
 				return TK_SOMA_ou_SUBTRACAO;
             }
 
 "="			{
                 yylval.traducao = yytext;
 				yylval.label = yytext;
-                printf("lexica =\n");
 				return TK_ATRIB;
 			}
 
 "And"	    {
 				yylval.traducao = "&&";
 				yylval.label = yytext;
-                printf("lexica and\n");
 				return TK_LOGICO;
 			}
 
 "Or"		{	
 				yylval.traducao = "||";
 				yylval.label = yytext;
-                printf("lexica or\n");
 				return TK_LOGICO;
 			}
 
 "Not"		{	
 				yylval.traducao = "!";
 				yylval.label = yytext;
-                printf("lexica not\n");
 				return TK_LOGICO;
 			}
 
@@ -130,7 +122,6 @@ Id [a-zA-z_]([a-zA-z_]|[0-9])*
 				yylval.label = yytext;
 				yylval.tipo = "Bool";
 				yylval.tipo_traducao = "bool";
-                printf("lexica true\n");
 				return TK_BOOL;
 			}
 
@@ -139,7 +130,6 @@ Id [a-zA-z_]([a-zA-z_]|[0-9])*
 				yylval.label = yytext;
 				yylval.tipo = "Bool";
 				yylval.tipo_traducao = "bool";
-                printf("lexica false\n");
 				return TK_BOOL;
 			}
     /*
@@ -161,7 +151,6 @@ Id [a-zA-z_]([a-zA-z_]|[0-9])*
                 */
                 yylval.traducao = yytext;
                 yylval.label = yytext;
-                printf("lexica main\n");
                 return TK_MAIN;
             }
 {Delim} 	{}
@@ -190,7 +179,6 @@ Id [a-zA-z_]([a-zA-z_]|[0-9])*
                 */
 				yylval.traducao = "int";
 				yylval.label = yytext;
-                printf("lexica tipo int\n");
 				return TK_TIPO_INT;
 			}
 
@@ -200,7 +188,6 @@ Id [a-zA-z_]([a-zA-z_]|[0-9])*
                 */
 				yylval.traducao = "float";
 				yylval.label = yytext;
-                printf("lexica tipo float\n");
 				return TK_TIPO_FLOAT;
 			}
 "Bool"	    {
@@ -209,7 +196,6 @@ Id [a-zA-z_]([a-zA-z_]|[0-9])*
                 */
 				yylval.traducao = "bool";
 				yylval.label = yytext;
-                printf("lexica tipo bool\n");
 				return TK_TIPO_BOOL;
 			}
 
@@ -222,7 +208,6 @@ Id [a-zA-z_]([a-zA-z_]|[0-9])*
 				yylval.tipo = "Int";
 				yylval.tipo_traducao = "int";
 				yylval.tamanho = ((string) yytext).size();
-                printf("lexica num int\n");
 				return TK_NUM;
 			}
 
@@ -235,7 +220,6 @@ Id [a-zA-z_]([a-zA-z_]|[0-9])*
 				yylval.tipo = "Float";
 				yylval.tipo_traducao = "float";
 				yylval.tamanho = ((string) yytext).size();
-                printf("lexica num float\n");
 				return TK_NUM;
             }
 
@@ -244,7 +228,6 @@ Id [a-zA-z_]([a-zA-z_]|[0-9])*
                 yylval.label = yytext;
                 yylval.tipo = "Char";
                 yylval.tipo_traducao = "char";
-                printf("lexica char\n");
                 return TK_CHAR;
             }
 
@@ -253,7 +236,6 @@ Id [a-zA-z_]([a-zA-z_]|[0-9])*
                 *   TESTADO
                 */
 				yylval.label = yytext;
-                printf("lexica id\n");
 				return TK_ID;
 			}
 %
