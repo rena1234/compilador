@@ -40,8 +40,6 @@ typedef struct BLOCO
 {
 	bool quebravel;
 	MapaVar variaveis;
-	string inicio;
-	string fim;
 }Bloco;
 
 static MapaVar mapa_variaveis;
@@ -52,6 +50,7 @@ static stack <Bloco> pilha_blocos;
 int yylex();
 void yyerror(string);
 string cria_nome_nova_temp();
+string cria_nome_novo_rotulo();
 string declara_variaveis_temp(MapaTemp mapa_vars);
 MapaVar cria_mapavar();
 Variavel retorna_var(string label);
@@ -77,6 +76,7 @@ Variavel retorna_var(string label);
 %left TK_DIVISAO_ou_MULTIPLICACAO
 
 %nonassoc TK_IF
+%nonassoc TK_ELSE
 %%
 
 /*S 				: TK_TIPO_INT TK_MAIN '('')'BLOCO
@@ -96,7 +96,7 @@ S				  : ESCOPO_GLOBAL COMANDOS
 ESCOPO_GLOBAL:
           {
             	//EMPILHAR BLOCO
-                pilha_blocos.push({ .quebravel = false, .variaveis = cria_mapavar(), .inicio="", .fim=""});
+                pilha_blocos.push({ .quebravel = false, .variaveis = cria_mapavar()});
           }
 	      ;
 
@@ -115,13 +115,11 @@ COMANDO 		: DECLARACAO ';'
 				      | ATRIBUICAO ';'
               | IF 
        		    | E ';'
-            ;
+              ;
 
 BLOCO			: '{' COMANDOS '}'
 				{
-  				    pilha_blocos.pop();
-                    pilha_blocos.push({ .quebravel = false, .variaveis = cria_mapavar(), .inicio="", .fim=""});
-					$$.traducao = $2.traducao; //todos os comandos sendo atribuido em $$
+					    $$.traducao = $2.traducao; //todos os comandos sendo atribuido em $$
 				};
 
 TIPO    : TK_TIPO_INT | TK_TIPO_BOOL | TK_TIPO_FLOAT | TK_TIPO_CHAR;
@@ -486,8 +484,40 @@ ATRIBUICAO      	:TK_ID TK_ATRIB TK_CHAR
                     }
                     ;
         
-IF                  : TK_IF '('OPERACAO_LOGICO ')'BLOCO 
-                    ; 
+IF                  : TK_IF '('OPERACAO_LOGICO ')'EMPILHA_IF BLOCO{
+                        string nega_cond = cria_nome_nova_temp();
+                        string rotulo_fim = cria_nome_novo_rotulo();
+                        mapa_temporario[nega_cond] = { .id = nega_cond, .tipo_traducao = "bool" };
+                        $$.traducao = $3.traducao + "\t" + nega_cond + " =! $3.label;" "\n"
+                                + "\t" + "if(" + nega_cond + ")"  + "\t" "goto " + rotulo_fim + ";\n"
+                                + $6.traducao + "\n" + "\t" + rotulo_fim + ":"; 
+                        pilha_blocos.pop();
+                    }
+                    | TK_IF '('OPERACAO_LOGICO')'EMPILHA_IF BLOCO ELSE{ //If(a<b){}Else{}
+                    }
+              
+                    ;
+
+ELSE                : TK_ELSE EMPILHA_ELSE BLOCO{
+                    }
+                    | TK_ELSE EMPILHA_ELSE IF{  //ELSE IF (1:2){}
+                    
+                    }
+                    ;
+
+EMPILHA_IF          :
+                    {
+                      pilha_blocos.push({ .quebravel = false, .variaveis = cria_mapavar()});
+                                         
+                    }
+                    ;
+
+EMPILHA_ELSE          :
+                      {
+                        pilha_blocos.pop();
+                        pilha_blocos.push({ .quebravel = false, .variaveis = cria_mapavar()});
+                      }
+                      ;
 %%
 
 #include "lex.yy.c"
@@ -497,6 +527,12 @@ string cria_nome_nova_temp(){
 	static int n = 0;
 	n++;
     return "temp" + to_string(n);
+}
+
+string cria_nome_novo_rotulo(){
+	static int n = 0;
+	n++;
+  return "rotulo" + to_string(n);
 }
 
 /*

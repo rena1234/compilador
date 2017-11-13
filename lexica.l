@@ -19,13 +19,17 @@ Id [a-zA-z_]([a-zA-z_]|[0-9])*
                 yylval.label = yytext;
                 return TK_IF;
              }
-
+"Else"       {
+                 yylval.traducao = "else";
+                 yylval.label = yytext;
+                 return TK_ELSE;
+             }
 "(Float)"    {
                 yylval.tipo = "Float"; 
                 yylval.tipo_traducao = "float"; 
                 yylval.traducao = "(float)";
-		yylval.label = yytext;
-		return TK_CAST;
+		        yylval.label = yytext;
+		        return TK_CAST;
              }
 
 "(Int)"      {
