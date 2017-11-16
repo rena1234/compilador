@@ -1,5 +1,5 @@
 %{
-	#include <string>
+    #include <string>
 %}
 
 
@@ -9,10 +9,11 @@ Int (-?[1-9][0-9]*)|0
 Float {Int}\.[0-9]+
 Char \'([^'])\'
 Id [a-zA-z_]([a-zA-z_]|[0-9])*
+String \"([^\"\n]|\\\")*\" 
 
 %%
 
-[(){}[\];,:]	{ return *yytext; }
+[(){}[\];,:]    { return *yytext; }
 
 "If"         {
                 yylval.traducao = "if";
@@ -24,21 +25,31 @@ Id [a-zA-z_]([a-zA-z_]|[0-9])*
                  yylval.label = yytext;
                  return TK_ELSE;
              }
-"(Float)"    {
+"For"        {
+                yylval.traducao = "for";
+                 yylval.label = yytext;
+                 return TK_FOR;
+              }
+"While"       {
+                yylval.traducao = "while";
+                 yylval.label = yytext;
+                 return TK_WHILE;
+              }
+"(Float)"     {
                 yylval.tipo = "Float"; 
                 yylval.tipo_traducao = "float"; 
                 yylval.traducao = "(float)";
-		        yylval.label = yytext;
-		        return TK_CAST;
-             }
+                    yylval.label = yytext;
+                    return TK_CAST;
+              }
 
 "(Int)"      {
                 
                 yylval.tipo = "Int"; 
                 yylval.tipo_traducao = "int"; 
                 yylval.traducao = "(int)";
-		yylval.label = yytext;
-		return TK_CAST;
+        yylval.label = yytext;
+        return TK_CAST;
             }
 
 "!="        {
@@ -47,37 +58,42 @@ Id [a-zA-z_]([a-zA-z_]|[0-9])*
                 */
                 
                 yylval.traducao = yytext;
-				yylval.label = yytext;
-				return TK_RELACIONAL;
+                yylval.label = yytext;
+                return TK_RELACIONAL;
             }
 
 
 ">"         {
                 
                 yylval.traducao = yytext;
-				yylval.label = yytext;
-				return TK_RELACIONAL;
+                yylval.label = yytext;
+                return TK_RELACIONAL;
             }
 
 "<"         {
                 
                 yylval.traducao = yytext;
-				yylval.label = yytext;
-				return TK_RELACIONAL;
+                                yylval.label = yytext;
+                                return TK_RELACIONAL;
+            }
+"=="        {
+                 yylval.traducao = yytext;
+                         yylval.label = yytext;
+                         return TK_RELACIONAL;
             }
 
 "/"         {
                 
                 yylval.traducao = yytext;
-				yylval.label = yytext;
-				return TK_DIVISAO_ou_MULTIPLICACAO;
+                yylval.label = yytext;
+                return TK_DIVISAO_ou_MULTIPLICACAO;
             }
 
 "*"         {
                 
                 yylval.traducao = yytext;
-				yylval.label = yytext;
-				return TK_DIVISAO_ou_MULTIPLICACAO;
+                yylval.label = yytext;
+                return TK_DIVISAO_ou_MULTIPLICACAO;
             }
 
 "-"         {
@@ -86,57 +102,57 @@ Id [a-zA-z_]([a-zA-z_]|[0-9])*
                 *   TESTADO
                 */
                 yylval.traducao = yytext;
-				yylval.label = yytext;
-				return TK_SOMA_ou_SUBTRACAO;
+                yylval.label = yytext;
+                return TK_SOMA_ou_SUBTRACAO;
             }
 
 "+"         {
                 
                 yylval.traducao = yytext;
-				yylval.label = yytext;
-				return TK_SOMA_ou_SUBTRACAO;
+                yylval.label = yytext;
+                return TK_SOMA_ou_SUBTRACAO;
             }
 
-"="			{
+"="         {
                 yylval.traducao = yytext;
-				yylval.label = yytext;
-				return TK_ATRIB;
-			}
+                yylval.label = yytext;
+                return TK_ATRIB;
+            }
 
-"And"	    {
-				yylval.traducao = "&&";
-				yylval.label = yytext;
-				return TK_LOGICO;
-			}
+"And"       {
+                yylval.traducao = "&&";
+                yylval.label = yytext;
+                return TK_LOGICO;
+            }
 
-"Or"		{	
-				yylval.traducao = "||";
-				yylval.label = yytext;
-				return TK_LOGICO;
-			}
+"Or"        {   
+                yylval.traducao = "||";
+                yylval.label = yytext;
+                return TK_LOGICO;
+            }
 
-"Not"		{	
-				yylval.traducao = "!";
-				yylval.label = yytext;
-				return TK_LOGICO;
-			}
+"Not"       {   
+                yylval.traducao = "!";
+                yylval.label = yytext;
+                return TK_LOGICO;
+            }
 
-"True"		{	
-				yylval.traducao = "true";
-				yylval.label = yytext;
-				yylval.tipo = "Bool";
-				yylval.tipo_traducao = "bool";
-				return TK_BOOL;
-			}
+"True"      {   
+                yylval.traducao = "true";
+                yylval.label = yytext;
+                yylval.tipo = "Bool";
+                yylval.tipo_traducao = "bool";
+                return TK_BOOL;
+            }
 
-"False"		{	
-				yylval.traducao = "false";
-				yylval.label = yytext;
-				yylval.tipo = "Bool";
-				yylval.tipo_traducao = "bool";
-				return TK_BOOL;
-			}
-    /*
+"False"     {   
+                yylval.traducao = "false";
+                yylval.label = yytext;
+                yylval.tipo = "Bool";
+                yylval.tipo_traducao = "bool";
+                return TK_BOOL;
+            }
+
 "{"         {
                 yylval.traducao = yytext;
                 yylval.label = yytext;
@@ -147,7 +163,7 @@ Id [a-zA-z_]([a-zA-z_]|[0-9])*
                 yylval.label = yytext;
                 return TK_END;
             }
-            */
+
 
 "main"      {
                 /*
@@ -157,74 +173,84 @@ Id [a-zA-z_]([a-zA-z_]|[0-9])*
                 yylval.label = yytext;
                 return TK_MAIN;
             }
-{Delim} 	{}
+{Delim}     {}
 
    /* 
-"return"	{
-				yylval.traducao = yytext;
-				yylval.label = yytext;
-				return TK_RETURN;
-			}
+"return"    {
+                yylval.traducao = yytext;
+                yylval.label = yytext;
+                return TK_RETURN;
+            }
 
-"break"		{
-				yylval.traducao = yytext;
-				yylval.label = yytext;
-				return TK_BREAK;
-			}
+"break"     {
+                yylval.traducao = yytext;
+                yylval.label = yytext;
+                return TK_BREAK;
+            }
             */
+"Global"    {
+                yylval.label = yytext;
+                yylval.traducao = "cin";
+                return TK_GLOBAL;
+            }
 "Char"      {
                 yylval.traducao = "char";
                 yylval.label = yytext;
                 return TK_TIPO_CHAR;
             }
-"Int"		{
+"String"    {
+                yylval.traducao = yytext;
+                yylval.label = yytext;
+                return TK_TIPO_STRING;
+            }
+"Int"       {
                 /*
                 *   TESTADO
                 */
-				yylval.traducao = "int";
-				yylval.label = yytext;
-				return TK_TIPO_INT;
-			}
+                yylval.traducao = "int";
+                yylval.label = yytext;
+                return TK_TIPO_INT;
+            }
 
-"Float"		{
+"Float"     {
                 /*
                 *   TESTADO
                 */
-				yylval.traducao = "float";
-				yylval.label = yytext;
-				return TK_TIPO_FLOAT;
-			}
-"Bool"	    {
+                yylval.traducao = "float";
+                yylval.label = yytext;
+                return TK_TIPO_FLOAT;
+            }
+"Bool"      {
                 /*
                 *   TESTADO
                 */
-				yylval.traducao = "bool";
-				yylval.label = yytext;
-				return TK_TIPO_BOOL;
-			}
+                yylval.traducao = "bool";
+                yylval.label = yytext;
+                return TK_TIPO_BOOL;
+            }
 
 {Int}       {
-				/*
+                /*
                 *   TESTADO
                 */
                 yylval.traducao = yytext;
-				yylval.label = yytext;
-				yylval.tipo = "Int";
-				yylval.tipo_traducao = "int";
-				yylval.tamanho = ((string) yytext).size();
-				return TK_NUM;
-			}
+                yylval.label = yytext;
+                yylval.tipo = "Int";
+                yylval.tipo_traducao = "int";
+                yylval.tamanho = ((string) yytext).size();
+                return TK_NUM;
+            }
 
 {Float}     {
-				/*
+                /*
                 *   TESTADO
                 */
-				yylval.traducao = yytext;
-				yylval.label = yytext;
-				yylval.tipo = "Float";
-				yylval.tipo_traducao = "float";
-				yylval.tamanho = ((string) yytext).size();
-				return TK_NUM;
+                yylval.traducao = yytext;
+                yylval.label = yytext;
+                yylval.tipo = "Float";
+                yylval.tipo_traducao = "float";
+                yylval.tamanho = ((string) yytext).size();
+                return TK_NUM;
             }
 
 {Char}      {
@@ -234,13 +260,23 @@ Id [a-zA-z_]([a-zA-z_]|[0-9])*
                 yylval.tipo_traducao = "char";
                 return TK_CHAR;
             }
-
-{Id}		{
+{String}    {
+                string texto = yytext;
+                texto.replace(texto.begin(),texto.begin()+1,"");
+                texto.replace(texto.end()-1,texto.end(),"");
+                yylval.traducao = texto;
+                yylval.label = texto;
+                yylval.tipo = "String";
+                yylval.tipo_traducao = "char";
+                yylval.tamanho = texto.size();
+                return TK_STRING;
+            }
+{Id}        {
                 /*
                 *   TESTADO
                 */
-				yylval.label = yytext;
-				return TK_ID;
-			}
+                yylval.label = yytext;
+                return TK_ID;
+            }
 %
   

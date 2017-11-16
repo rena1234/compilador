@@ -13,24 +13,24 @@ using namespace std;
 
 
 typedef struct ATRIBUTOS{
-	string label;
-	string traducao;
-	string tipo;
-	string tipo_traducao;
-	int tamanho;
+  string label;
+  string traducao;
+  string tipo;
+  string tipo_traducao;
+  int tamanho;
 }atributos;
 
 typedef struct VARIAVEL
 {
   string id;
-	string tipo_traducao;
-	string temporario;
+  string tipo_traducao;
+  string temporario;
 }Variavel;
 
 typedef struct
 {
-	string id;
-	string tipo_traducao;
+  string id;
+  string tipo_traducao;
 }VariavelTemporaria;
 
 typedef map<string, Variavel> MapaVar;
@@ -38,9 +38,15 @@ typedef map<string, VariavelTemporaria> MapaTemp;
 
 typedef struct BLOCO
 {
-	bool quebravel;
-	MapaVar variaveis;
+  bool quebravel;
+  MapaVar variaveis;
 }Bloco;
+
+typedef struct FUNCAO
+{
+    string nome_temporario;
+    string tipo_traducao;
+}Funcao;
 
 static MapaVar mapa_variaveis;
 static MapaTemp mapa_temporario;
@@ -51,6 +57,7 @@ int yylex();
 void yyerror(string);
 string cria_nome_nova_temp();
 string cria_nome_novo_rotulo();
+string cria_nome_nova_funcao();
 string declara_variaveis_temp(MapaTemp mapa_vars);
 MapaVar cria_mapavar();
 Variavel retorna_var(string label);
@@ -60,12 +67,13 @@ Variavel retorna_var(string label);
 
 %}
 
-%token TK_NUM TK_CHAR TK_ID TK_BOOL 
-%token TK_MAIN TK_TIPO_INT TK_TIPO_BOOL TK_TIPO_FLOAT TK_TIPO_CHAR 
+%token TK_NUM TK_CHAR TK_ID TK_BOOL TK_STRING
+%token TK_MAIN TK_TIPO_INT TK_TIPO_BOOL TK_TIPO_FLOAT TK_TIPO_CHAR TK_TIPO_STRING
 %token TK_SOMA_ou_SUBTRACAO TK_DIVISAO_ou_MULTIPLICACAO
 %token TK_MENOR_QUE TK_MAIOR_QUE TK_IGUAL TK_DIFERENTE TK_MENOR_IGUAL TK_LOGICO
-%token TK_ATRIB TK_CAST
-%token TK_FIM TK_ERROR
+%token TK_ATRIB TK_CAST TK_GLOBAL
+%token TK_BEGIN TK_END TK_ERROR
+%token TK_
 
 %start S
 
@@ -77,63 +85,117 @@ Variavel retorna_var(string label);
 
 %nonassoc TK_IF
 %nonassoc TK_ELSE
+%nonassoc TK_FOR
+%nonassoc TK_WHILE
 %%
-
-/*S 				: TK_TIPO_INT TK_MAIN '('')'BLOCO
-				{
-					cout << "//Compilador Frankenstein/\n" << "#include <iostream>\n#include<string.h>\n#include<stdio.h>\nint main(void)\n{\n" << declara_variaveis_temp(mapa_temporario) << $5.traducao << "\n\treturn 0;\n}" << endl; 
-				};*/
   
-S				  : ESCOPO_GLOBAL COMANDOS
+  /*
+      VC TEM QUE FZR UMA CHECAGEM ANTES DE INICIAR UMA FUNCAO, TEM QUE VER SE A PILHA DE MAPAS SÒ TEM UM MAPA
+  */
+
+/*S         : TK_TIPO_INT TK_MAIN '('')'BLOCO
+        {
+          cout << "//Compilador Frankenstein/\n" << "#include <iostream>\n#include<string.h>\n#include<stdio.h>\nint main(void)\n{\n" << declara_variaveis_temp(mapa_temporario) << $5.traducao << "\n\treturn 0;\n}" << endl; 
+        };*/
+  
+S         : ESCOPO_GLOBAL COMANDOS
           {
-  					cout << "//Compilador Frankenstein/\n" << "#include <iostream>\n#include<string.h>\n#include<stdio.h>\n" << declara_variaveis_temp(mapa_temporario) << $2.traducao << "\n\treturn 0;\n}" << endl;
+            cout << "//Compilador Frankenstein/\n" << "#include <iostream>\n#include<string.h>\n#include<stdio.h>\n" << declara_variaveis_temp(mapa_temporario) << $2.traducao << "\n\treturn 0;\n}" << endl;
           /*
-          	declarar funções aqui tbm
+            declarar funções aqui tbm
           */
           }
-	      ;
+        ;
 
 ESCOPO_GLOBAL:
           {
-            	//EMPILHAR BLOCO
+              //EMPILHAR BLOCO para o main
                 pilha_blocos.push({ .quebravel = false, .variaveis = cria_mapavar()});
           }
-	      ;
-
-COMANDOS	: COMANDO COMANDOS
-				{
-					$$.traducao = $1.traducao + $2.traducao; //um comando(expressao)
-				}
-				|
-				{
-					$$.traducao = ""; //EOF
-				}
-				;
-
-
-COMANDO 		: DECLARACAO ';'
-				      | ATRIBUICAO ';'
-              | IF 
-       		    | E ';'
-              ;
-
-BLOCO			: '{' COMANDOS '}'
-				{
-					    $$.traducao = $2.traducao; //todos os comandos sendo atribuido em $$
-				};
+        ;
 
 TIPO    : TK_TIPO_INT | TK_TIPO_BOOL | TK_TIPO_FLOAT | TK_TIPO_CHAR;
+ELEMENTO       : TK_NUM | TK_BOOL | TK_CHAR;
+
+DECLARACOES_GLOBAL    : DECLARACAO_GLOBAL DECLARACOES_GLOBAL
+                      |
+                      {
+                          $$.traducao = "";
+                      }
+                      ;
+
+DECLARACAO_GLOBAL    : TIPO TK_ID '=' ELEMENTO ';' 
+                     {
+                         
+                     
+                     }
+                     ;
+
+ARGUMENTO    : TIPO TK_ID ARGUMENTO_AUX
+             {
+                 $$.tipo = $1.tipo;
+                 $$.tipo_traducao = $1.tipo_traducao;
+                 $$.traducao = $1.tipo_traducao + " " + $2.label;
+                 string argumento = cria_nome_nova_temp();
+                 mapa_temporario[$2.label] = { .id = argumento,
+                            .tipo_traducao = "float" };
+                 pilha_blocos.top().variaveis[$2.label] = { .id = $2.label,
+                        .tipo_traducao = $1.tipo_traducao, argumento };
+             }
+             ;
+ARGUMENTO_AUX    : ',' ARGUMENTO
+                 |
+                 ;
+EMPILHA_FUNCAO    :
+                  {
+                        if( pilha_blocos.size() > 0 ){
+                            /*
+                                DISPARAR ERRO AQUI
+                            */
+                        }
+                        pilha_blocos.push({ .quebravel = false, .variaveis = cria_mapavar()});
+                  }
+                  ;
+BLOCO     : '{' COMANDOS '}'
+        {
+              $$.traducao = $2.traducao; //todos os comandos sendo atribuido em $$
+        };
+
+FUNCAO    : TIPO TK_ID EMPILHA_FUNCAO'(' ARGUMENTOS ')' BLOCO
+          {
+              string nome_temp = cria_nome_nova_funcao();
+              $$.traducao = $1.tipo_traducao + " (" + $4.traducao + ")" +"\n"
+                +"{\n" + $6.traducao + "\n}";
+              pilha_blocos.pop();
+          }
+          ;
+
+COMANDOS  : COMANDO COMANDOS
+        {
+          $$.traducao = $1.traducao + $2.traducao; //um comando(expressao)
+        }
+        |
+        {
+          $$.traducao = ""; //EOF
+        }
+        ;
+
+
+COMANDO     : DECLARACAO ';'
+              | ATRIBUICAO ';'
+              | IF 
+              | E ';'
+              | WHILE
+              ;
+
 
 ARGUMENTOS    : ARGUMENTO ARGUMENTOS_ADICIONAIS
 ARGUMENTOS_ADICIONAIS :
                       | ',' ARGUMENTOS
                       ;  
-ARGUMENTO    : TIPO TK_ID
-FUNCAO    : TIPO TK_ID '(' ARGUMENTOS ')' BLOCO
-          ;
 
 DECLARACAO  : TK_TIPO_FLOAT TK_ID TK_ATRIB  E 
-			{  
+      {  
                if(mapa_variaveis.find($2.label) != mapa_variaveis.end()){ 
                     yyerror("Variavel já foi declarada \n");
                 }
@@ -143,19 +205,19 @@ DECLARACAO  : TK_TIPO_FLOAT TK_ID TK_ATRIB  E
                     mapa_temporario[varCast] = { .id = varCast,
                             .tipo_traducao = "float" };
                     
-                  	string expCast = varCast + " = (float) " + $4.label +";";
+                    string expCast = varCast + " = (float) " + $4.label +";";
                     $$.traducao =  $4.traducao + "\t" + expCast + "\n";
 
                    pilha_blocos.top().variaveis[$2.label] = { .id = $2.label,
                             .tipo_traducao = "float", varCast };
                 }
-  				else{
-                	$$ = $4;
+          else{
+                  $$ = $4;
 
                     pilha_blocos.top().variaveis[$2.label] = { .id = $2.label,
                             .tipo_traducao = $4.tipo_traducao, $4.label };
               }
-			}
+      }
        | TK_TIPO_INT TK_ID
       {
           if(mapa_variaveis.find($2.label) != mapa_variaveis.end()){ 
@@ -170,10 +232,10 @@ DECLARACAO  : TK_TIPO_FLOAT TK_ID TK_ATRIB  E
                         .tipo_traducao = $$.tipo_traducao, $$.label };
 
         
-         	$$.traducao = "\t" + $$.tipo_traducao + " " + $$.label + ";"+ "\n";
+          $$.traducao = "\t" + $$.tipo_traducao + " " + $$.label + ";"+ "\n";
       }
 
-			| TK_TIPO_FLOAT TK_ID
+      | TK_TIPO_FLOAT TK_ID
       {
           if(mapa_variaveis.find($2.label) != mapa_variaveis.end()){ 
               yyerror("Variavel já foi declarada \n");
@@ -188,7 +250,7 @@ DECLARACAO  : TK_TIPO_FLOAT TK_ID TK_ATRIB  E
 
         
       }
-			| TK_TIPO_BOOL TK_ID
+      | TK_TIPO_BOOL TK_ID
       {
           if(mapa_variaveis.find($2.label) != mapa_variaveis.end()){ 
               yyerror("Variavel já foi declarada \n");
@@ -203,7 +265,7 @@ DECLARACAO  : TK_TIPO_FLOAT TK_ID TK_ATRIB  E
 
         
       }
-			| TK_TIPO_CHAR TK_ID
+      | TK_TIPO_CHAR TK_ID
       {
           if(mapa_variaveis.find($2.label) != mapa_variaveis.end()){ 
               yyerror("Variavel já foi declarada \n");
@@ -218,8 +280,8 @@ DECLARACAO  : TK_TIPO_FLOAT TK_ID TK_ATRIB  E
 
         
       }
-			| TK_TIPO_BOOL TK_ID TK_ATRIB OPERACAO_LOGICO
-			{
+      | TK_TIPO_BOOL TK_ID TK_ATRIB OPERACAO_LOGICO
+      {
                 /*
                 if(pilha_blocos.top().variaveis.find($2.label) != mapa_variaveis.end()){ 
                     yyerror("Variavel já foi declarada \n");
@@ -229,9 +291,9 @@ DECLARACAO  : TK_TIPO_FLOAT TK_ID TK_ATRIB  E
 
                 pilha_blocos.top().variaveis[$2.label] = { .id = $2.label,
                         .tipo_traducao = $4.tipo_traducao, $4.label };
-			}
-			| TK_TIPO_CHAR TK_ID TK_ATRIB TK_CHAR 
-      		{
+      }
+      | TK_TIPO_CHAR TK_ID TK_ATRIB TK_CHAR 
+          {
 
                 if(mapa_variaveis.find($2.label) != mapa_variaveis.end()){ 
                     yyerror("Variavel já foi declarada \n");
@@ -243,12 +305,12 @@ DECLARACAO  : TK_TIPO_FLOAT TK_ID TK_ATRIB  E
                         .tipo_traducao = $$.tipo_traducao, $$.label };
                 mapa_temporario[$$.label] = { .id = $$.label,
                         .tipo_traducao = $$.tipo_traducao };
-  				
+          
                 $$.traducao = "\t" + retorna_var($2.label).temporario 
                         + " = " + $4.label +";" + "\n";
-      		}
-			| TK_TIPO_INT TK_ID TK_ATRIB E
-      		{
+          }
+      | TK_TIPO_INT TK_ID TK_ATRIB E
+          {
 
                 if(mapa_variaveis.find($2.label) != mapa_variaveis.end()){ 
                     yyerror("Variavel já foi declarada \n");
@@ -259,26 +321,26 @@ DECLARACAO  : TK_TIPO_FLOAT TK_ID TK_ATRIB  E
                     mapa_temporario[varCast] = { .id = varCast,
                             .tipo_traducao = "int" };
                     
-                  	string expCast =  varCast + "= (int) " + $4.label +";";
+                    string expCast =  varCast + "= (int) " + $4.label +";";
                     $$.traducao = $4.traducao + "\t" + expCast + "\n";
                   
                     pilha_blocos.top().variaveis[$2.label] = { .id = $2.label,
                             .tipo_traducao = "int", varCast };
                 }
-  				else{
-                	$$ = $4;
+          else{
+                  $$ = $4;
 
                     pilha_blocos.top().variaveis[$2.label] = { .id = $2.label,
                             .tipo_traducao = $4.tipo_traducao, $4.label };
                 }
-      		}
-			;
+          }
+      ;
 
-E				:  OPERACAO_ARITMETICA
-				;
+E       :  OPERACAO_ARITMETICA
+        ;
 
 OPERACAO_ARITMETICA : E TK_SOMA_ou_SUBTRACAO E
-				{   
+        {   
                     
                     $$.label = cria_nome_nova_temp();
                     if ($1.tipo == "Int" && $3.tipo == "Float") {
@@ -312,10 +374,10 @@ OPERACAO_ARITMETICA : E TK_SOMA_ou_SUBTRACAO E
                                 + $2.traducao + $3.label + ";\n";
                     }
 
-				}
+        }
                 |
                 E TK_DIVISAO_ou_MULTIPLICACAO E
-				{   
+        {   
                     
                     $$.label = cria_nome_nova_temp();
                     if ($1.tipo == "Int" && $3.tipo == "Float") {
@@ -341,7 +403,7 @@ OPERACAO_ARITMETICA : E TK_SOMA_ou_SUBTRACAO E
                         $$.traducao += $3.traducao +'\t' + $$.label + " = " + $1.label + $2.traducao + $3.label + ";\n";
                     }
 
-				}
+        }
                 |
                 TK_NUM
                 {
@@ -368,7 +430,7 @@ OPERACAO_ARITMETICA : E TK_SOMA_ou_SUBTRACAO E
                 }
                 ;
 
-OPERACAO_RELACIONAL	:	E TK_RELACIONAL E
+OPERACAO_RELACIONAL : E TK_RELACIONAL E
                     {
                         $$.label = cria_nome_nova_temp();
                         $$.tipo = "Bool"; $$.tipo_traducao = "bool";
@@ -378,28 +440,28 @@ OPERACAO_RELACIONAL	:	E TK_RELACIONAL E
                         $$.traducao = $1.traducao + $3.traducao + '\t' 
                                 + $$.label + " = " + $1.label + " " + $2.traducao + " " + $3.label + ";\n";
                     }
-					| OPERACAO_RELACIONAL TK_RELACIONAL TK_BOOL
+                    | OPERACAO_RELACIONAL TK_RELACIONAL TK_BOOL
                     {
-                      	$$.label = cria_nome_nova_temp();
-                      	$$.tipo = "Bool";
+                        $$.label = cria_nome_nova_temp();
+                        $$.tipo = "Bool";
                         $$.tipo_traducao = "bool";
-                      	mapa_temporario[$$.label] = {.id = $$.label,
+                        mapa_temporario[$$.label] = {.id = $$.label,
                                 .tipo_traducao = $$.tipo_traducao};
-                      	$$.traducao = $1.traducao + '\t' + $$.label + " = " + $1.label + 
+                        $$.traducao = $1.traducao + '\t' + $$.label + " = " + $1.label + 
                                 "== " +  $2.traducao  + " ;\n";
                     }
                     ;
 
-OPERACAO_LOGICO 	: OPERACAO_LOGICO TK_LOGICO OPERACAO_LOGICO
+OPERACAO_LOGICO   : OPERACAO_LOGICO TK_LOGICO OPERACAO_LOGICO
                     {
                           $$.label = cria_nome_nova_temp();
                           $$.tipo = "Bool"; $$.tipo_traducao = "bool";
-						  mapa_temporario[$$.label] = { .id = $$.label, 
+              mapa_temporario[$$.label] = { .id = $$.label, 
                           .tipo_traducao = $$.tipo_traducao };
                           $$.traducao = $1.traducao  + $3.traducao + '\t' + $$.label + " = "
-                                + $1.label + " " + $2.traducao + " " +  $3.label + ";\n";	
+                                + $1.label + " " + $2.traducao + " " +  $3.label + ";\n"; 
                     }
-				    |
+            |
                     OPERACAO_RELACIONAL 
                     |
                     TK_BOOL
@@ -421,7 +483,7 @@ OPERACAO_LOGICO 	: OPERACAO_LOGICO TK_LOGICO OPERACAO_LOGICO
                     }
                     ;  
 
-ATRIBUICAO      	:TK_ID TK_ATRIB TK_CHAR
+ATRIBUICAO        :TK_ID TK_ATRIB TK_CHAR
                     {
                       //mapV mapa = buscaMapa($1.label);
                       $$.traducao = '\t' + retorna_var($1.label).temporario + " = " + $3.traducao + ";\n";
@@ -448,9 +510,9 @@ ATRIBUICAO      	:TK_ID TK_ATRIB TK_CHAR
                             if($1.tipo_traducao == "int"){
                                 $$.tipo = "Int";
                                 $$.tipo_traducao = "int";
-                            	mapa_temporario[variavel_cast] = { .id = variavel_cast, .tipo_traducao = "int" };
-                            	$$.traducao =  $3.traducao + "\t"  + variavel_cast + " = (int) " + $3.label + ";\n" +
-															'\t' + retorna_var($1.label).temporario + " = " + variavel_cast + ";\n";
+                              mapa_temporario[variavel_cast] = { .id = variavel_cast, .tipo_traducao = "int" };
+                              $$.traducao =  $3.traducao + "\t"  + variavel_cast + " = (int) " + $3.label + ";\n" +
+                              '\t' + retorna_var($1.label).temporario + " = " + variavel_cast + ";\n";
                             }else if($1.tipo_traducao == "float"){
                                 $$.tipo = "Float";
                                 $$.tipo_traducao = "float";
@@ -466,15 +528,15 @@ ATRIBUICAO      	:TK_ID TK_ATRIB TK_CHAR
                       }
                       
                     }
-  		    |
+          |
                     TK_ID TK_ATRIB OPERACAO_LOGICO
-                    {	
+                    { 
                       $$.traducao = $3.traducao + '\t' + retorna_var($1.label).temporario + " = " + $3.label + ";\n";
                     }
                     |
                     TK_ID TK_ATRIB TK_CAST E
                     {
-			/*
+      /*
                             Tem que checar se o tipo do cast eh o msm do id
                         */
                         string variavel_cast= cria_nome_nova_temp(); 
@@ -488,21 +550,59 @@ IF                  : TK_IF '('OPERACAO_LOGICO ')'EMPILHA_IF BLOCO{
                         string nega_cond = cria_nome_nova_temp();
                         string rotulo_fim = cria_nome_novo_rotulo();
                         mapa_temporario[nega_cond] = { .id = nega_cond, .tipo_traducao = "bool" };
-                        $$.traducao = $3.traducao + "\t" + nega_cond + " =! $3.label;" "\n"
+                        $$.traducao = $3.traducao + "\t" + nega_cond + " =! "+$3.label+";\n"
                                 + "\t" + "if(" + nega_cond + ")"  + "\t" "goto " + rotulo_fim + ";\n"
                                 + $6.traducao + "\n" + "\t" + rotulo_fim + ":"; 
                         pilha_blocos.pop();
                     }
-                    | TK_IF '('OPERACAO_LOGICO')'EMPILHA_IF BLOCO ELSE{ //If(a<b){}Else{}
+                    | TK_IF '('OPERACAO_LOGICO')'EMPILHA_IF BLOCO TK_ELSE EMPILHA_ELSE BLOCO
+                    { //If(a<b){}Else{}
+                        string nega_cond = cria_nome_nova_temp();
+                        string rotulo_fim = cria_nome_novo_rotulo();
+                        string rotulo_fim_else = cria_nome_novo_rotulo();
+                        mapa_temporario[nega_cond] = { .id = nega_cond, .tipo_traducao = "bool" };
+                        $$.traducao = $3.traducao + "\t" + nega_cond + " =!" + $3.label + ";\n"
+                                + "\t" + "if(" + nega_cond + ")"  + "\t" "goto " + rotulo_fim + ";\n"
+                                + $6.traducao + "\t" + rotulo_fim + ":"
+                                + "\n\tif (" + $3.label + ")\tgoto " + rotulo_fim + ";\n"+ $9.traducao 
+                                + "\t" + rotulo_fim_else + ":\n" ; 
+                        pilha_blocos.pop();
                     }
-              
+                    | TK_IF '('OPERACAO_LOGICO')'EMPILHA_IF BLOCO TK_ELSE IF
+                    {    string nega_cond = cria_nome_nova_temp();
+                        string rotulo_fim = cria_nome_novo_rotulo();
+                        string rotulo_fim_else = cria_nome_novo_rotulo();
+                        mapa_temporario[nega_cond] = { .id = nega_cond, .tipo_traducao = "bool" };
+                        $$.traducao = $3.traducao + "\t" + nega_cond + " =!" + $3.label + ";\n"
+                                + "\t" + "if(" + nega_cond + ")"  + "\t" "goto " + rotulo_fim + ";\n"
+                                + $6.traducao + "\t" + rotulo_fim + ":"
+                                + "\n\tif (" + $3.label + ")\tgoto " + rotulo_fim + ";\n"+ $8.traducao; 
+                        pilha_blocos.pop();
+                    }
+                    | TK_IF '('TK_ID')'EMPILHA_IF BLOCO
+                    {
+                     //checar se tk_id é bool
+                        string nega_cond = cria_nome_nova_temp();
+                        string rotulo_fim = cria_nome_novo_rotulo();
+                        mapa_temporario[nega_cond] = { .id = nega_cond, .tipo_traducao = "bool" };
+                        $$.traducao ="\t" + nega_cond + "!=" + retorna_var($3.label).temporario
+                                + ";\n\tif(" + nega_cond + ")"  + "\t" "goto " + rotulo_fim + ";\n"
+                                + $6.traducao + "\t" + rotulo_fim + ":"; 
+                        pilha_blocos.pop();
+                    }
+                    | TK_IF '('TK_ID')'EMPILHA_IF BLOCO TK_ELSE EMPILHA_ELSE BLOCO
+                    { //If(a<b){}Else{}
+                        string nega_cond = cria_nome_nova_temp();
+                        string rotulo_fim = cria_nome_novo_rotulo();
+                        string rotulo_fim_else = cria_nome_novo_rotulo();
+                        mapa_temporario[nega_cond] = { .id = nega_cond, .tipo_traducao = "bool" };
+                        $$.traducao = "\tif(" + nega_cond + ")" + "\t" "goto " + rotulo_fim + ";\n"
+                                + $6.traducao + "\t" + rotulo_fim + ":"
+                                + "\n\tif (" + $3.label + ")\tgoto " + rotulo_fim + ";\n"+ $9.traducao 
+                                + "\t" + rotulo_fim_else + ":\n" ; 
+                        pilha_blocos.pop();
+                    }
                     ;
-
-ELSE                : TK_ELSE EMPILHA_ELSE BLOCO{
-                    }
-                    | TK_ELSE EMPILHA_ELSE IF{  //ELSE IF (1:2){}
-                    
-                    }
                     ;
 
 EMPILHA_IF          :
@@ -518,46 +618,72 @@ EMPILHA_ELSE          :
                         pilha_blocos.push({ .quebravel = false, .variaveis = cria_mapavar()});
                       }
                       ;
+WHILE                 : TK_WHILE'('OPERACAO_LOGICO')' BLOCO
+                      {
+                          string rotulo_inicio_while = cria_nome_novo_rotulo();
+                          string rotulo_fim_while = cria_nome_novo_rotulo();
+                          string nega_cond = cria_nome_nova_temp();
+                          mapa_temporario[nega_cond] = { .id = nega_cond, .tipo_traducao = "bool" };
+                          $$.traducao = $3.traducao + "\t" + nega_cond + " =! $3.label;" "\n"
+                                  + "\t" + "if(" + nega_cond + ")"  + "\t" "goto " + rotulo_fim_while + ";\n\t"
+                                  + rotulo_inicio_while + ":\n" + $5.traducao + "\t" + "if(" + $3.label +")\t goto " 
+                                  + rotulo_inicio_while + ";\n\t" + rotulo_fim_while + ":";
+                          pilha_blocos.pop();
+                      }
+                      ;
+FOR                   : TK_FOR '(' ATRIBUICAO ';' OPERACAO_LOGICO ';' ATRIBUICAO ')' BLOCO 
+                      {
+                        //verificar se todos os tk_id são iguais
+                          if($3.label != $5.label || $3.label != $7.label || $5.label != $7.label){ yyerror();}
+          
+                          string i = cria_nome_nova_temp();
+                          mapa_temporario[i] = {.id = $3.label , .tipo_traducao = $3.tipo_traducao};
+    
+                          pilha_blocos.top().variaveis[i] = ({ .id = "i" , .tipo_traducao = $3.tipo_traducao})
+                          pilha_blocos.push({ .quebravel = true, .variaveis = cria_mapavar()});
+                          $$.traducao = $1.label + "  (" + $3.traducao + "  ;" + $5.traducao + "  ;" + $7.traducao + " ){" + "\n" 
+                          + "";
+                          pilha_bloco.pop();
+                      }                                                                               
 %%
 
 #include "lex.yy.c"
 
 //FUNÇOES 
 string cria_nome_nova_temp(){
-	static int n = 0;
-	n++;
+  static int n = 0;
+  n++;
     return "temp" + to_string(n);
 }
 
 string cria_nome_novo_rotulo(){
-	static int n = 0;
-	n++;
+  static int n = 0;
+  n++;
   return "rotulo" + to_string(n);
 }
 
-/*
-variavel cria_var(string nome_temp){
-    variavel * var =  malloc(sizeof(variavel));
-    var -> nome_temp = nome_temp;
-	return var;
-}*/
+string cria_nome_nova_funcao(){
+  static int n = 0;
+  n++;
+  return "funcao" + to_string(n);
+}
 
 Variavel retorna_var( string label ){
     stack<Bloco> p = pilha_blocos;
     while (not p.empty()){
-		    if (p.top().variaveis.find(label) != p.top().variaveis.end()) {
-			      return p.top().variaveis.find(label) -> second;
-		    }
-	      p.pop();
-	  }
-	  yyerror("A variável "+ label + " não foi declarada.");
+        if (p.top().variaveis.find(label) != p.top().variaveis.end()) {
+            return p.top().variaveis.find(label) -> second;
+        }
+        p.pop();
+    }
+    yyerror("A variável "+ label + " não foi declarada.");
 }
 
 string declara_variaveis_temp(MapaTemp mapa_vars){
-   	string s = "";
-	for (MapaTemp::iterator it = mapa_vars.begin(); it!=mapa_vars.end(); ++it) {
-    	s += '\t' + it->second.tipo_traducao + ' ' + it->second.id + ";\n";
-	}
+    string s = "";
+  for (MapaTemp::iterator it = mapa_vars.begin(); it!=mapa_vars.end(); ++it) {
+      s += '\t' + it->second.tipo_traducao + ' ' + it->second.id + ";\n";
+  }
     return s;
 }
 
@@ -567,12 +693,12 @@ int yyparse();
 
 int main( int argc, char* argv[] )
 {
-	yyparse();
-	return 0;
+  yyparse();
+  return 0;
 }
 
 void yyerror( string MSG )
 {
-	cout << MSG << endl;
-	exit (0);
-}	
+  cout << MSG << endl;
+  exit (0);
+}
