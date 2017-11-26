@@ -35,18 +35,35 @@ typedef struct
 
 typedef map<string, Variavel> MapaVar;
 typedef map<string, VariavelTemporaria> MapaTemp;
-typedef struct BLOCO
+
+typedef struct BLOCOSIMPLES
 {
   bool quebravel;
   MapaVar variaveis;
   string rotulo_inicio;
   string rotulo_fim;
+}BlocoSimples;
+
+typedef struct BLOCOSWITCH
+{
+  bool quebravel;
+  MapaVar variaveis;
+  string rotulo_inicio;
+  string rotulo_fim;
+  string Variavel_switch;
+}BlocoSwitch;
+
+typedef union BLOCO{
+    BlocoSimples b_simples;
+    BlocoSwitch  b_switch;
 }Bloco;
+
 typedef struct FUNCAO
 {
     string nome_temporario;
     string tipo_traducao;
 }Funcao;
+
 static MapaVar mapa_variaveis;
 static MapaTemp mapa_temporario;
 static stack <Bloco> pilha_blocos; 
@@ -67,7 +84,7 @@ Variavel retorna_var(string label);
 %token TK_MENOR_QUE TK_MAIOR_QUE TK_IGUAL TK_DIFERENTE TK_MENOR_IGUAL TK_LOGICO
 %token TK_ATRIB TK_CAST TK_GLOBAL
 %token TK_BEGIN TK_END TK_ERROR
-%token TK_IN_OUT TK_CASE TK_SWITCH TK_BREAK TK_RETURN
+%token TK_IN_OUT TK_CASE TK_SWITCH TK_BREAK TK_RETURN TK_DEFAULT
 %start S
 //precedencia de operações
 %left TK_RELACIONAL
@@ -169,6 +186,7 @@ COMANDO     : DECLARACAO ';'
               | WHILE
               | DO_WHILE ';'
               | IN_OUT  ';'
+              | SWITCH
               ;
 ARGUMENTOS    : ARGUMENTO ARGUMENTOS_ADICIONAIS
 ARGUMENTOS_ADICIONAIS :
@@ -342,7 +360,7 @@ DECLARACAO  : TK_TIPO_FLOAT TK_ID TK_ATRIB  E
 OP_STRING       : CONCATENA
                 ;
 CONCATENA       : ST
-                | ST 'm' ST
+                | ST TK_SOMA_ou_SUBTRACAO CONCATENA 
                 {
                      
                      if($1.tipo == "String" && $3.tipo == "String"){
@@ -353,11 +371,13 @@ CONCATENA       : ST
                          mapa_temporario[$$.label] = { .id = $$.label,
                              .tipo_traducao = $$.tipo_traducao };
                          int tamanho_novo = $1.tamanho + $3.tamanho;
-                         $$.traducao = "\t" + $$.label + " = "
+                         $$.traducao = $1.traducao + "\n" + $3.traducao + "\n"
+                             + "\t" + $$.label + " = "
                              + "malloc(" + to_string(tamanho_novo) + "* sizeof(" + $$.label + "));\n"
                              + "\t$$.label = strcat(" + $$.label +"," + $1.label + ");\n"
                              + "\t$$.label = strcat(" + $$.label +"," + $3.label + ");\n"
-                             ;        
+                             ;
+                        $$.tamanho = tamanho_novo;
                      }
 
                 }
@@ -705,20 +725,21 @@ FOR                   : TK_FOR '(' ATRIBUICAO ';' OPERACAO_LOGICO ';' ATRIBUICAO
 SWITCH                : TK_SWITCH '('VARIAVEL_SWITCH')''{'BLOCO_CASE'}'
                       {
                         $$.traducao = $3.traducao + $6.traducao + "\n";
-  				              pilha_bloco.pop();
+                        pilha_bloco.pop();
                       }
 
 VARIAVEL_SWITCH       : TK_ID
                       {
-                        /*
-                        MapaVar mapa_var = retorna_var($1.label); 
-                        string i = cria_nome_nova_temp();
-                        mapa_temporario[i] = {.id = $3.label , .tipo = mapa_var[$1.label].tipo};
-                        $$.traducao = mapa_var;
-                        */
+                        
+                        pilha_blocos.push({.quebravel, .variaveis = cria_mapaVar()});
+                        Variavel var = retorna_var($1.label); 
+                        string vartemp = cria_nome_nova_temp();
+                        pilha_blocos.top().variaveis[vartemp] = ({ .id = vartemp , .tipo_traducao = $1.tipo_traducao});
+                        $$.traducao = var;
+                        
                       }
 
-BLOCO_CASE            : CASE CASE_ADICIONAIS
+BLOCO_CASE            : CASE BLOCO_CASE
                       {
                         $$.traducao = $1.traducao + $2.traducao;
                       }
@@ -733,20 +754,18 @@ BLOCO_CASE            : CASE CASE_ADICIONAIS
 
 CASE                  : TK_CASE TK_NUM ':' COMANDOS
                       {
-                        /*string rotulo = cria_nome_novo_rotulo(); 
+                        string rotulo_case = cria_nome_novo_rotulo(); 
+                        string rotulo_fim = cria_nome_novo_rotulo(); 
   
-                        $$.traducao = "\tif(" + $2.label  ")"  + "\t" "goto " + rotulo + ";\n"
-                                + $6.traducao + "\t" + rotulo + ":";
-                        */ 
+                        $$.traducao = "\tif(" + $2.label  "!=" + pilha_blocos.top() + ")"  + "\t" "goto rotulo_fim" + rotulo_case + ":\n"
+                                + $4.traducao + "\t" + rotulo_fim + ":"; 
                       }
 
-CASE_ADICIONAIS       :
+DEFAULT               : TK_DEFAULT ':' COMANDOS
                       {
+                        $$.traducao = $3.traducao;
                       }
-DEFAULT               :
-                      {
 
-                      }
 
 IN_OUT      :TK_IN_OUT '(' TK_ID ')'
       {
