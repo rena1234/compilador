@@ -1,5 +1,6 @@
 %{
-    #include <string>
+#include <string>
+
 %}
 
 
@@ -13,8 +14,21 @@ String \"([^\"\n]|\\\")*\"
 
 %%
 
-[(){}[\];,:]    { return *yytext; }
+[{}()[\];,:]    { return *yytext; }
 
+"Var"    {
+                return TK_VAR;
+            }
+"Switch"    {
+                return TK_SWITCH;
+            }
+
+"Case"      {
+                return TK_CASE;
+            }
+"Default"   {
+                return TK_DEFAULT;
+            }
 "If"         {
                 yylval.traducao = "if";
                 yylval.label = yytext;
@@ -61,7 +75,14 @@ String \"([^\"\n]|\\\")*\"
                 yylval.label = yytext;
                 return TK_RELACIONAL;
             }
-
+"Scan"      {
+              yylval.label = yytext;
+                return TK_IN_OUT;
+            }
+"Print"    {
+               yylval.label = yytext;
+                return TK_IN_OUT;
+            }
 
 ">"         {
                 
@@ -153,6 +174,7 @@ String \"([^\"\n]|\\\")*\"
                 return TK_BOOL;
             }
 
+    /*
 "{"         {
                 yylval.traducao = yytext;
                 yylval.label = yytext;
@@ -163,7 +185,7 @@ String \"([^\"\n]|\\\")*\"
                 yylval.label = yytext;
                 return TK_END;
             }
-
+    */
 
 "main"      {
                 /*
@@ -278,5 +300,5 @@ String \"([^\"\n]|\\\")*\"
                 yylval.label = yytext;
                 return TK_ID;
             }
+
 %
-  
